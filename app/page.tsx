@@ -9,7 +9,8 @@ const timelineData = [
 ];
 const timelineNodes=timelineData.flatMap(group=>group.events.map(event=>({...event,year:group.year})));
 export default function Home() {
-  const [page,setPage]=useState(0), [opened,setOpened]=useState(false), [vote,setVote]=useState<Vote|null>(null), [submitting,setSubmitting]=useState<Vote|null>(null), [videoError,setVideoError]=useState(false), [activeNode,setActiveNode]=useState(0);
+  const [page,setPage]=useState(0), [opened,setOpened]=useState(false), [vote,setVote]=useState<Vote|null>(null), [submitting,setSubmitting]=useState<Vote|null>(null), [videoError,setVideoError]=useState(false), [activeNode,setActiveNode]=useState(0), [musicPlaying,setMusicPlaying]=useState(false);
+  const audioRef=useRef<HTMLAudioElement>(null);
   const touch=useRef({x:0,y:0});
   const mouse=useRef({x:0,y:0,scrollLeft:0,dragging:false});
   const wheelLocked=useRef(false);
@@ -26,10 +27,14 @@ export default function Home() {
   const centerRailNode=(index:number)=>{const rail=getRail(),node=rail?.querySelectorAll<HTMLElement>('button')[index];if(rail&&node)rail.scrollTo({left:node.offsetLeft-(rail.clientWidth-node.clientWidth)/2,behavior:'smooth'})};
   const selectNode=(index:number)=>{const track=getTrack(),slide=track?.querySelectorAll<HTMLElement>('.memory-slide')[index];if(track&&slide){track.scrollTo({left:slide.offsetLeft-(track.clientWidth-slide.clientWidth)/2,behavior:'smooth'});centerRailNode(index);setActiveNode(index)}};
   const syncTimeline=()=>{const track=getTrack();if(!track)return;const center=track.scrollLeft+track.clientWidth/2;let closest=0,distance=Infinity;track.querySelectorAll<HTMLElement>('.memory-slide').forEach((slide,index)=>{const d=Math.abs(slide.offsetLeft+slide.clientWidth/2-center);if(d<distance){distance=d;closest=index}});if(closest!==activeNode){setActiveNode(closest);centerRailNode(closest)}};
-  const openEnvelope=()=>{setOpened(true);window.setTimeout(()=>goToPage(1),650)};
+  const playMusic=()=>{const audio=audioRef.current;if(!audio)return;audio.play().catch(()=>setMusicPlaying(false))};
+  const toggleMusic=()=>{const audio=audioRef.current;if(!audio)return;if(audio.paused)playMusic();else audio.pause()};
+  const openEnvelope=()=>{playMusic();setOpened(true);window.setTimeout(()=>goToPage(1),650)};
   const castVote=(v:Vote)=>{if(submitting)return;setSubmitting(v);window.setTimeout(()=>{localStorage.setItem('reunion-vote',v);setVote(v);setSubmitting(null)},850)};
   const results={attend:35+(vote==='attend'?1:0),maybe:8+(vote==='maybe'?1:0)};
   return <main className="h5" onTouchStart={onStart} onTouchEnd={onEnd} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp} onWheel={onWheel}>
+    <audio ref={audioRef} src="/assets/bgm.mp3" loop preload="metadata" onPlay={()=>setMusicPlaying(true)} onPause={()=>setMusicPlaying(false)}/>
+    <button className={`music-control ${musicPlaying?'is-playing':''}`} type="button" aria-label={musicPlaying?'暂停背景音乐':'播放背景音乐'} aria-pressed={musicPlaying} onClick={toggleMusic}><span>♫</span></button>
     <div className="pages" style={{transform:`translate3d(0,-${page*100}dvh,0)`}}>
       <section className="page cover" aria-label="聚会邀请"><div className="grain"/><p className="eyebrow">CLASS FIVE · REUNION</p><div className="title-lockup"><p>高2013级5班</p><h1>十周年聚会</h1><span>2016 — 2026</span></div><button className={`envelope ${opened?'is-open':''}`} onClick={openEnvelope} aria-label="点击开启邀请"><span className="letter"><b>致我们</b><i>的青春</i></span><span className="envelope-back"/><span className="envelope-front"/><span className="flap"/><span className="seal">伍</span></button><button className="open-hint" onClick={openEnvelope}>点击开启 <span>↗</span></button><SwipeHint text="上滑启程"/></section>
       <section className="page video-page" aria-label="青春影像">{!videoError&&<video src="/reunion.mp4" poster="/video-poster.jpg" playsInline controls preload="metadata" onError={()=>setVideoError(true)}/>}<div className={`video-fallback ${videoError?'visible':''}`}><div className="film-number">02</div><p>那年今日</p><h2>影像待续</h2><span>把 reunion.mp4 放入 public 文件夹即可播放</span></div><div className="video-vignette"/><div className="page-label"><span>02</span> 青春影像</div><SwipeHint text="上滑继续"/></section>
