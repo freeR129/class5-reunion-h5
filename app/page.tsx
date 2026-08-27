@@ -10,13 +10,20 @@ const timeline = [
 export default function Home() {
   const [page,setPage]=useState(0), [opened,setOpened]=useState(false), [vote,setVote]=useState<Vote|null>(null), [videoError,setVideoError]=useState(false);
   const touch=useRef({x:0,y:0});
+  const mouse=useRef({x:0,y:0,scrollLeft:0,dragging:false});
+  const wheelLocked=useRef(false);
   useEffect(()=>{ const saved=localStorage.getItem('reunion-vote') as Vote|null; if(saved)setVote(saved); },[]);
   const goToPage=(i:number)=>setPage(Math.max(0,Math.min(3,i)));
   const onStart=(e:React.TouchEvent)=>{touch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}};
   const onEnd=(e:React.TouchEvent)=>{const dx=e.changedTouches[0].clientX-touch.current.x,dy=e.changedTouches[0].clientY-touch.current.y;if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>48)goToPage(page+(dy<0?1:-1))};
+  const getTrack=()=>document.querySelector('.timeline-track') as HTMLDivElement|null;
+  const onMouseDown=(e:React.MouseEvent)=>{mouse.current={x:e.clientX,y:e.clientY,scrollLeft:getTrack()?.scrollLeft??0,dragging:true}};
+  const onMouseMove=(e:React.MouseEvent)=>{if(!mouse.current.dragging)return;const track=getTrack();if(page===2&&Math.abs(e.clientX-mouse.current.x)>Math.abs(e.clientY-mouse.current.y)&&track)track.scrollLeft=mouse.current.scrollLeft-(e.clientX-mouse.current.x)};
+  const onMouseUp=(e:React.MouseEvent)=>{if(!mouse.current.dragging)return;mouse.current.dragging=false;const dx=e.clientX-mouse.current.x,dy=e.clientY-mouse.current.y;if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>48)goToPage(page+(dy<0?1:-1))};
+  const onWheel=(e:React.WheelEvent)=>{if(wheelLocked.current||Math.abs(e.deltaY)<30)return;wheelLocked.current=true;goToPage(page+(e.deltaY>0?1:-1));window.setTimeout(()=>{wheelLocked.current=false},760)};
   const openEnvelope=()=>{setOpened(true);window.setTimeout(()=>goToPage(1),650)};
   const castVote=(v:Vote)=>{localStorage.setItem('reunion-vote',v);setVote(v)};
-  return <main className="h5" onTouchStart={onStart} onTouchEnd={onEnd}>
+  return <main className="h5" onTouchStart={onStart} onTouchEnd={onEnd} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp} onWheel={onWheel}>
     <div className="pages" style={{transform:`translate3d(0,-${page*100}dvh,0)`}}>
       <section className="page cover" aria-label="聚会邀请"><div className="grain"/><p className="eyebrow">CLASS FIVE · REUNION</p><div className="title-lockup"><p>高2013级5班</p><h1>十周年聚会</h1><span>2016 — 2026</span></div><button className={`envelope ${opened?'is-open':''}`} onClick={openEnvelope} aria-label="点击开启邀请"><span className="letter"><b>致我们</b><i>的青春</i></span><span className="envelope-back"/><span className="envelope-front"/><span className="flap"/><span className="seal">伍</span></button><button className="open-hint" onClick={openEnvelope}>点击开启 <span>↗</span></button><SwipeHint text="上滑启程"/></section>
       <section className="page video-page" aria-label="青春影像">{!videoError&&<video src="/reunion.mp4" poster="/video-poster.jpg" playsInline controls preload="metadata" onError={()=>setVideoError(true)}/>}<div className={`video-fallback ${videoError?'visible':''}`}><div className="film-number">02</div><p>那年今日</p><h2>影像待续</h2><span>把 reunion.mp4 放入 public 文件夹即可播放</span></div><div className="video-vignette"/><div className="page-label"><span>02</span> 青春影像</div><SwipeHint text="上滑继续"/></section>
