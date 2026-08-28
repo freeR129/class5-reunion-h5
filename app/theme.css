@@ -28,3 +28,7 @@ html,body{background:#03152c}
 
 /* Supplied blue envelope artwork */
 .envelope.envelope-photo{width:min(86vw,350px);aspect-ratio:1.34;margin-top:clamp(24px,4.5vh,42px);margin-bottom:12px;overflow:hidden;border-radius:4px;background:transparent;filter:drop-shadow(0 24px 28px #0009);transition:opacity .5s,transform .55s,filter .55s}.envelope-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center}.envelope-photo.is-open{opacity:0;transform:translateY(-12px) scale(.96);filter:drop-shadow(0 8px 12px #0004) blur(3px)}
+
+/* Centered vote content and three-way mock results */
+.vote-page{padding-inline:28px}.vote-page .vote-panel,.vote-page .success{margin-inline:auto}.choices button{min-height:72px}.choices button b{font-size:14px;line-height:1.4}.result-footer .result-grid{grid-template-columns:1fr 1px 1fr 1px 1fr}.result-footer .result-grid>div{flex-direction:column;gap:4px}.result-footer .result-grid strong{font-size:32px}.result-footer .result-grid span{font-size:9px!important;line-height:1.45}.result-footer .result-grid>i{height:48px}
+@media(max-height:700px){.choices button{min-height:64px;padding-block:9px}.choices button b{font-size:13px}.result-footer .result-grid strong{font-size:28px}}
