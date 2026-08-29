@@ -32,6 +32,7 @@ html,body{background:#03152c}
 
 /* Centered vote content and three-way mock results */
 .vote-page{padding-inline:28px}.vote-page .vote-panel,.vote-page .success{margin-inline:auto}.choices button{min-height:72px}.choices button b{font-size:14px;line-height:1.4}.result-footer .result-grid{grid-template-columns:1fr 1px 1fr 1px 1fr}.result-footer .result-grid>div{flex-direction:column;gap:4px}.result-footer .result-grid strong{font-size:32px}.result-footer .result-grid span{font-size:9px!important;line-height:1.45}.result-footer .result-grid>i{height:48px}
+.vote-panel{display:flex;flex-direction:column;align-items:stretch;justify-content:center}.vote-panel h2{margin-top:0}.choices button{position:relative;display:flex;align-items:center;justify-content:center;padding:12px 52px;text-align:center}.choices button span{position:absolute;left:18px;top:50%;transform:translateY(-50%)}.choices button b{width:100%;text-align:center}
 @media(max-height:700px){.choices button{min-height:64px;padding-block:9px}.choices button b{font-size:13px}.result-footer .result-grid strong{font-size:28px}}
 
 /* Seamless Page 1 envelope-to-video handoff */
