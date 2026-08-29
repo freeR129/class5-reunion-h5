@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-type Vote = 'attend' | 'maybe' | 'absent';
+import { getVoteResults, submitVote, type VoteResults, type VoteStatus } from './lib/votes';
+type Vote = VoteStatus;
+const fallbackResults: VoteResults = {attend:30,absent:8,maybe:7};
 const timelineData = [
   {year:'2013',events:[
     {date:'2013.08.19—25',title:'高一新生军训',description:'军训里认识大家，也认识了彭同学。',images:['/assets/memories/2013年08月19日-25高一新生军训，认识大家和彭同学.jpg']},
@@ -23,16 +25,17 @@ const timelineData = [
     {date:'2015.10.30',title:'十月生日会',description:'十月生日会，把祝福和笑脸留在了相片里。',images:['/assets/memories/2025年10月30日-十月生日会.jpg']},
   ]},
   {year:'2016',events:[{date:'2016.06',title:'高考',description:'最后一次并肩走进考场，也第一次真正走向各自的远方。',images:[]},{date:'2016.06',title:'毕业',description:'我们认真说了再见，却始终相信，故事还会继续。',images:[]}]},
+  {year:'2026',events:[{date:'2016 ··· 2026',title:'再聚',description:'十年光阴继续向前，属于五班的故事在 2026 再次相聚。',images:[]}]},
 ];
 const timelineNodes=timelineData.flatMap(group=>group.events.map(event=>({...event,year:group.year})));
 export default function Home() {
-  const [page,setPage]=useState(0), [vote,setVote]=useState<Vote|null>(null), [submitting,setSubmitting]=useState<Vote|null>(null), [videoError,setVideoError]=useState(false), [activeNode,setActiveNode]=useState(0), [musicPlaying,setMusicPlaying]=useState(false);
+  const [page,setPage]=useState(0), [vote,setVote]=useState<Vote|null>(null), [submitting,setSubmitting]=useState<Vote|null>(null), [results,setResults]=useState<VoteResults>(fallbackResults), [videoError,setVideoError]=useState(false), [activeNode,setActiveNode]=useState(0), [musicPlaying,setMusicPlaying]=useState(false);
   const audioRef=useRef<HTMLAudioElement>(null);
   const videoRef=useRef<HTMLVideoElement>(null);
   const touch=useRef({x:0,y:0});
   const mouse=useRef({x:0,y:0,scrollLeft:0,dragging:false});
   const wheelLocked=useRef(false);
-  useEffect(()=>{ const saved=localStorage.getItem('reunion-vote') as Vote|null; if(saved)setVote(saved); },[]);
+  useEffect(()=>{const saved=localStorage.getItem('reunion-vote') as Vote|null;if(saved)setVote(saved);getVoteResults().then(setResults).catch(()=>{})},[]);
   const goToPage=(i:number)=>setPage(Math.max(0,Math.min(3,i)));
   const onStart=(e:React.TouchEvent)=>{touch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}};
   const onEnd=(e:React.TouchEvent)=>{const dx=e.changedTouches[0].clientX-touch.current.x,dy=e.changedTouches[0].clientY-touch.current.y;if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>48)goToPage(page+(dy<0?1:-1))};
@@ -49,8 +52,7 @@ export default function Home() {
   const toggleMusic=()=>{const audio=audioRef.current;if(!audio)return;if(audio.paused)playMusic();else audio.pause()};
   useEffect(()=>{const video=videoRef.current;if(!video)return;if(page===1)video.play().catch(()=>{});else{video.pause();if(page===0)video.currentTime=0}},[page]);
   const openInvitation=()=>{playMusic();goToPage(1)};
-  const castVote=(v:Vote)=>{if(submitting)return;setSubmitting(v);window.setTimeout(()=>{localStorage.setItem('reunion-vote',v);setVote(v);setSubmitting(null)},760)};
-  const results={attend:30+(vote==='attend'?1:0),absent:8+(vote==='absent'?1:0),maybe:7+(vote==='maybe'?1:0)};
+  const castVote=(v:Vote)=>{if(submitting)return;setSubmitting(v);submitVote(v).then(setResults).catch(()=>setResults({...fallbackResults,[v]:fallbackResults[v]+1}));window.setTimeout(()=>{localStorage.setItem('reunion-vote',v);setVote(v);setSubmitting(null)},760)};
   return <main className="h5" onTouchStart={onStart} onTouchEnd={onEnd} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp} onWheel={onWheel}>
     <audio ref={audioRef} src="/assets/bgm.mp3" loop preload="metadata" onPlay={()=>setMusicPlaying(true)} onPause={()=>setMusicPlaying(false)}/>
     <video ref={videoRef} className={`invite-opening-video ${page===1?'is-page-video':''}`} src="/assets/invite-opening-8.mp4" preload="auto" playsInline muted disablePictureInPicture controlsList="nodownload noplaybackrate nofullscreen" onEnded={e=>{const video=e.currentTarget;video.pause();if(Number.isFinite(video.duration))video.currentTime=Math.max(0,video.duration-.08)}} onError={()=>setVideoError(true)}/>
