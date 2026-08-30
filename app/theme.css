@@ -39,6 +39,7 @@ html,body{background:#03152c}
 .success{animation-delay:0s;animation-duration:.9s}
 @media(max-height:700px){.choices button{min-height:64px;padding-block:9px}.choices button b{font-size:13px}.result-footer .result-grid strong{font-size:28px}}
 
+
 /* Keep the result reveal attached to the vote transition, including after HMR. */
 .success{animation-delay:0s;animation-duration:.8s}
 
