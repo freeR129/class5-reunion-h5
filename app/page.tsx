@@ -11,7 +11,7 @@ const timelineData = [
     {date:'2013.08.19—25',title:'高一新生军训',description:'军训里认识大家，也认识了彭同学。',images:['/assets/memories/2013年08月19日-25高一新生军训，认识大家和彭同学.png']},
     {date:'2013.10.17',title:'校运动会',description:'',images:['/assets/memories/2013年10月17日-校运动会，取得总分排名第二的成绩-1.png','/assets/memories/2013年10月17日-校运动会，取得总分排名第二的成绩-2.jpg']},
     {date:'2013.12.20',title:'第一次太极棍比赛',description:'',images:['/assets/memories/2013年12月20日-第一次太极棍比赛-2.jpg','/assets/memories/2013年12月20日-第一次太极棍比赛-3.jpg']},
-    {date:'2013.12.25',title:'圣诞惊喜',description:'圣诞节，每个人都惊喜地收到了一只苹果。',images:['/assets/memories/2013年12月25日-圣诞节，每个人惊喜获得一个苹果-1.png','/assets/memories/2013年12月25日-圣诞节，每个人惊喜获得一个苹果-2.png']},
+    {date:'2013.12.25',title:'圣诞惊喜',description:'圣诞节，每个人都惊喜地收到了一只苹果。',images:['/assets/memories/2013年12月25日-圣诞节，每个人惊喜获得一个苹果-1.jpg']},
     {date:'2013.12.31',title:'跨年联欢会',description:'与四班一起跨年联欢，全班合唱《无与伦比的美丽》。',images:['/assets/memories/2013年12月31日-与四班跨年联欢会，全班合唱《无与伦比的美丽》-1.jpg','/assets/memories/2013年12月31日-与四班跨年联欢会，全班合唱《无与伦比的美丽》-2.jpg','/assets/memories/2013年12月31日-与四班跨年联欢会，全班合唱《无与伦比的美丽》-3.jpg','/assets/memories/2013年12月31日-与四班跨年联欢会，全班合唱《无与伦比的美丽》-4.jpg']},
   ]},
   {year:'2014',events:[
@@ -31,6 +31,7 @@ const timelineData = [
     {date:'2015.09.10',title:'教师颁奖典礼',description:'第一届教师颁奖典礼',images:['/assets/memories/2015年09月10日-第一节教师颁奖典礼.jpg','/assets/memories/2015年09月10日-第一节教师颁奖典礼-2.jpg']},
     {date:'2015.10.30',title:'每个月的生日会',description:'',images:['/assets/memories/2015年10月30日-十月生日会-1.jpg','/assets/memories/2015年10月30日-十月生日会-2.jpg','/assets/memories/2015年10月30日-十月生日会-3.jpg','/assets/memories/2015年10月30日-十月生日会-4.jpg','/assets/memories/2015年10月30日-十月生日会-5.jpg','/assets/memories/2015年10月30日-十月生日会-6.jpg']},
     {date:'2015.11.20',title:'小组歌唱与解散大会',description:'小组歌唱活动结束后，大家一起合唱《后来》。',images:['/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-9.jpg','/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-2.jpg','/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-3.jpg','/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-4.jpg','/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-5.jpg','/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-6.jpg','/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-7.jpg','/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-8.jpg','/assets/memories/2015年11月20日-小组唱歌活动，暨解散大会 结束后大家合唱《后来》-1.jpg']},
+    {date:'2015.12.25',title:'圣诞老人送苹果',description:'钟诚扮演圣诞老人，为大家送上苹果。',images:['/assets/memories/2015年12月25日-钟诚扮演圣诞老人送苹果-1.png','/assets/memories/2015年12月25日-钟诚扮演圣诞老人送苹果-2.png','/assets/memories/2015年12月25日-钟诚扮演圣诞老人送苹果-3.png']},
   ]},
   {year:'2016',events:[
     {date:'2016.02.03',title:'全班逃课看电影',description:'一、二月生日会，全班逃课看《功夫熊猫》3',images:['/assets/memories/2016年02月03日-全班逃课看《功夫熊猫3》.jpg']},
