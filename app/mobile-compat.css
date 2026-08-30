@@ -1,0 +1,103 @@
+/* Compatibility-only overrides for iOS, Android, and embedded WebViews. */
+html,
+body,
+#root {
+  height: 100%;
+  height: 100dvh;
+  min-height: 100svh;
+}
+
+.h5,
+.page {
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+}
+
+.pages {
+  height: 400vh;
+  height: 400svh;
+  height: 400dvh;
+}
+
+.page {
+  pointer-events: none;
+}
+
+.page-0 .page:nth-child(1),
+.page-1 .page:nth-child(2),
+.page-2 .page:nth-child(3),
+.page-3 .page:nth-child(4) {
+  pointer-events: auto;
+}
+
+.invite-opening-video {
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  pointer-events: none;
+}
+
+.timeline-page {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 48px);
+}
+
+.timeline-head::after {
+  content: "";
+  position: absolute;
+  top: -24px;
+  right: 0;
+  width: min(58vw, 250px);
+  height: 175px;
+  pointer-events: none;
+  background: url('/assets/timeline-motto.png') center/contain no-repeat;
+  transform-origin: center;
+  animation: timeline-motto-pulse 5s ease-in-out infinite;
+}
+
+.memory-track {
+  min-height: 0;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+}
+
+.memory-rail,
+.memory-track {
+  scroll-behavior: auto !important;
+  scroll-snap-type: none !important;
+  touch-action: none;
+}
+
+.memory-rail.is-dragging,
+.memory-track.is-dragging {
+  transition: none !important;
+}
+
+.memory-slide {
+  min-height: 0;
+  overflow: visible;
+}
+
+.memory-photo {
+  flex: 1 1 auto;
+  min-height: 96px;
+  max-height: 155px;
+}
+
+.memory-photo-stack {
+  flex: 0 0 auto;
+  min-height: 142px;
+  max-height: none;
+}
+
+@media (max-height: 700px) {
+  .memory-photo-stack {
+    min-height: 126px;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .memory-rail,
+  .memory-track {
+    touch-action: none;
+  }
+}
