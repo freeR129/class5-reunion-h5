@@ -106,14 +106,42 @@ function MemoryPhotoCard({src,alt,layout,shouldLoad,priority,onOpen}:{src:string
 
 export function PhotoLightbox({preview,onClose}:{preview:PhotoPreview|null;onClose:()=>void}) {
   const [closing,setClosing]=useState(false);
+  const [scale,setScale]=useState(1);
+  const [position,setPosition]=useState({x:0,y:0});
   const closeTimer=useRef(0);
-  useEffect(()=>{setClosing(false)},[preview]);
+  const lightboxRef=useRef<HTMLDivElement>(null);
+  const imageRef=useRef<HTMLImageElement>(null);
+  const transformRef=useRef({scale:1,x:0,y:0});
+  const gestureRef=useRef({mode:'none' as 'none'|'pan'|'pinch',startScale:1,startX:0,startY:0,startTouchX:0,startTouchY:0,startDistance:0,startCenterX:0,startCenterY:0,moved:false});
+  const lastTapRef=useRef({time:0,x:0,y:0});
+  const lastTouchToggleRef=useRef(0);
+  const clampTransform=(nextScale:number,nextX:number,nextY:number)=>{
+    const boundedScale=Math.max(1,Math.min(4,nextScale));
+    if(boundedScale<=1)return {scale:1,x:0,y:0};
+    const lightbox=lightboxRef.current,image=imageRef.current;
+    if(!lightbox||!image)return {scale:boundedScale,x:nextX,y:nextY};
+    const maxX=Math.max(0,(image.clientWidth*boundedScale-lightbox.clientWidth)/2);
+    const maxY=Math.max(0,(image.clientHeight*boundedScale-lightbox.clientHeight)/2);
+    return {scale:boundedScale,x:Math.max(-maxX,Math.min(maxX,nextX)),y:Math.max(-maxY,Math.min(maxY,nextY))};
+  };
+  const applyTransform=(nextScale:number,nextX:number,nextY:number)=>{const next=clampTransform(nextScale,nextX,nextY);transformRef.current=next;setScale(next.scale);setPosition({x:next.x,y:next.y})};
+  const resetTransform=()=>applyTransform(1,0,0);
+  const toggleZoom=()=>{const current=transformRef.current;if(current.scale>1)resetTransform();else applyTransform(2,0,0)};
+  const touchDistance=(touches:TouchList)=>Math.hypot(touches[1].clientX-touches[0].clientX,touches[1].clientY-touches[0].clientY);
+  const touchCenter=(touches:TouchList)=>({x:(touches[0].clientX+touches[1].clientX)/2,y:(touches[0].clientY+touches[1].clientY)/2});
+  const beginPan=(x:number,y:number,moved=false)=>{const current=transformRef.current;gestureRef.current={mode:current.scale>1?'pan':'none',startScale:current.scale,startX:current.x,startY:current.y,startTouchX:x,startTouchY:y,startDistance:0,startCenterX:0,startCenterY:0,moved}};
+  const onPreviewTouchStart=(event:TouchEvent)=>{event.stopPropagation();if(event.touches.length>=2){const current=transformRef.current,center=touchCenter(event.touches);gestureRef.current={mode:'pinch',startScale:current.scale,startX:current.x,startY:current.y,startTouchX:0,startTouchY:0,startDistance:touchDistance(event.touches),startCenterX:center.x,startCenterY:center.y,moved:false};return}const touch=event.touches[0];if(touch)beginPan(touch.clientX,touch.clientY)};
+  const onPreviewTouchMove=(event:TouchEvent)=>{event.stopPropagation();event.preventDefault();const gesture=gestureRef.current;if(event.touches.length>=2){if(gesture.mode!=='pinch')onPreviewTouchStart(event);const active=gestureRef.current,distance=touchDistance(event.touches),center=touchCenter(event.touches),nextScale=Math.max(1,Math.min(4,active.startScale*distance/Math.max(1,active.startDistance))),lightbox=lightboxRef.current,viewportX=(lightbox?.clientWidth??window.innerWidth)/2,viewportY=(lightbox?.clientHeight??window.innerHeight)/2,ratio=nextScale/active.startScale;active.moved=true;applyTransform(nextScale,center.x-viewportX-(active.startCenterX-viewportX-active.startX)*ratio,center.y-viewportY-(active.startCenterY-viewportY-active.startY)*ratio);return}if(event.touches.length===1&&gesture.mode==='pan'&&transformRef.current.scale>1){const touch=event.touches[0],dx=touch.clientX-gesture.startTouchX,dy=touch.clientY-gesture.startTouchY;if(Math.hypot(dx,dy)>3)gesture.moved=true;applyTransform(transformRef.current.scale,gesture.startX+dx,gesture.startY+dy)}};
+  const onPreviewTouchEnd=(event:TouchEvent)=>{event.stopPropagation();const gesture=gestureRef.current;if(event.touches.length===1&&transformRef.current.scale>1){const touch=event.touches[0];beginPan(touch.clientX,touch.clientY,gesture.mode==='pinch'||gesture.moved);return}if(event.touches.length)return;if(transformRef.current.scale<=1)resetTransform();if(!gesture.moved&&gesture.mode!=='pinch'){const touch=event.changedTouches[0],now=Date.now(),last=lastTapRef.current;if(touch&&now-last.time<300&&Math.hypot(touch.clientX-last.x,touch.clientY-last.y)<28){lastTapRef.current={time:0,x:0,y:0};lastTouchToggleRef.current=now;toggleZoom()}else if(touch)lastTapRef.current={time:now,x:touch.clientX,y:touch.clientY}}gestureRef.current.mode='none'};
+  useEffect(()=>{setClosing(false);transformRef.current={scale:1,x:0,y:0};setScale(1);setPosition({x:0,y:0});gestureRef.current.mode='none';lastTapRef.current={time:0,x:0,y:0}},[preview]);
   useEffect(()=>()=>window.clearTimeout(closeTimer.current),[]);
-  const requestClose=()=>{if(closing)return;setClosing(true);closeTimer.current=window.setTimeout(onClose,220)};
+  useEffect(()=>{if(!preview)return;const onResize=()=>{const current=transformRef.current;applyTransform(current.scale,current.x,current.y)};window.addEventListener('resize',onResize);return()=>window.removeEventListener('resize',onResize)},[preview]);
+  useEffect(()=>{const lightbox=lightboxRef.current;if(!preview||!lightbox)return;lightbox.addEventListener('touchstart',onPreviewTouchStart,{passive:false});lightbox.addEventListener('touchmove',onPreviewTouchMove,{passive:false});lightbox.addEventListener('touchend',onPreviewTouchEnd,{passive:false});lightbox.addEventListener('touchcancel',onPreviewTouchEnd,{passive:false});return()=>{lightbox.removeEventListener('touchstart',onPreviewTouchStart);lightbox.removeEventListener('touchmove',onPreviewTouchMove);lightbox.removeEventListener('touchend',onPreviewTouchEnd);lightbox.removeEventListener('touchcancel',onPreviewTouchEnd)}},[preview]);
+  const requestClose=()=>{if(closing)return;setClosing(true);closeTimer.current=window.setTimeout(()=>{resetTransform();onClose()},220)};
   useEffect(()=>{if(!preview)return;const onKeyDown=(event:KeyboardEvent)=>{if(event.key==='Escape')requestClose()};window.addEventListener('keydown',onKeyDown);return()=>window.removeEventListener('keydown',onKeyDown)},[preview,closing]);
   if(!preview)return null;
-  return <div className={`photo-lightbox ${closing?'is-closing':''}`} role="dialog" aria-modal="true" aria-label={`${preview.title}大图预览`} onClick={event=>{event.stopPropagation();if(event.target===event.currentTarget)requestClose()}} onTouchStart={event=>event.stopPropagation()} onTouchMove={event=>{event.stopPropagation();event.preventDefault()}} onTouchEnd={event=>event.stopPropagation()}>
+  return <div ref={lightboxRef} className={`photo-lightbox ${closing?'is-closing':''} ${scale>1?'is-zoomed':''}`} role="dialog" aria-modal="true" aria-label={`${preview.title}大图预览`} onClick={event=>{event.stopPropagation();if(event.target===event.currentTarget)requestClose()}}>
     <button className="photo-lightbox-close" type="button" aria-label="关闭照片预览" onClick={event=>{event.stopPropagation();requestClose()}}>×</button>
-    <img className="photo-lightbox-image" src={preview.selectedImage} alt={`${preview.title}照片 ${preview.selectedIndex+1}`}/>
+    <div className="photo-lightbox-stage"><img ref={imageRef} className="photo-lightbox-image" src={preview.selectedImage} alt={`${preview.title}照片 ${preview.selectedIndex+1}`} draggable={false} style={{transform:`translate3d(${position.x}px,${position.y}px,0) scale(${scale})`}} onLoad={()=>{const current=transformRef.current;applyTransform(current.scale,current.x,current.y)}} onDoubleClick={event=>{event.stopPropagation();if(Date.now()-lastTouchToggleRef.current>500)toggleZoom()}}/></div>
   </div>;
 }
