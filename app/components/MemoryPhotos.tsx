@@ -9,6 +9,8 @@ export type PhotoPreview = {
   title: string;
 };
 
+export function decodeImageForDisplay(image:HTMLImageElement,timeout=2200){return new Promise<void>(resolve=>{let settled=false;const finish=()=>{if(settled)return;settled=true;window.clearTimeout(timer);resolve()},timer=window.setTimeout(finish,timeout);if(typeof image.decode!=='function'){finish();return}void image.decode().then(finish,finish)})}
+
 type PhotoLayout = { x:number; y:number; width:number; height:number; rotation:number; zIndex:number };
 
 const layouts:Record<number,PhotoLayout[]> = {
@@ -45,14 +47,14 @@ function getLayout(count:number,index:number):PhotoLayout {
   return denseLayout[index%denseLayout.length];
 }
 
-export function MemoryPhotoStack({images,title,year,tone,shouldLoad,priority,onOpen}:{images:string[];title:string;year:string;tone:number;shouldLoad:boolean;priority:boolean;onOpen:(index:number)=>void}) {
+export function MemoryPhotoStack({images,title,year,tone,shouldLoad,priority,frameless=false,onOpen}:{images:string[];title:string;year:string;tone:number;shouldLoad:boolean;priority:boolean;frameless?:boolean;onOpen:(index:number)=>void}) {
   if(!images.length)return <div className={`memory-photo memory-photo-placeholder tone-${tone}`}><div className="photo-glow"/><b>{year}</b></div>;
-  return <div className={`memory-photo memory-photo-stack photo-count-${Math.min(images.length,6)}`} role="group" aria-label={`${title}照片，共${images.length}张`}>
-    {images.map((src,index)=><MemoryPhotoCard key={src} src={src} alt={`${title}照片 ${index+1}`} layout={getLayout(images.length,index)} shouldLoad={shouldLoad} priority={priority} onOpen={()=>onOpen(index)}/>) }
+  return <div className={`memory-photo memory-photo-stack photo-count-${Math.min(images.length,6)} ${frameless?'is-poster':''}`} role="group" aria-label={`${title}照片，共${images.length}张`}>
+    {images.map((src,index)=><MemoryPhotoCard key={src} src={src} alt={`${title}照片 ${index+1}`} layout={getLayout(images.length,index)} shouldLoad={shouldLoad} priority={priority} frameless={frameless} onOpen={()=>onOpen(index)}/>) }
   </div>;
 }
 
-function MemoryPhotoCard({src,alt,layout,shouldLoad,priority,onOpen}:{src:string;alt:string;layout:PhotoLayout;shouldLoad:boolean;priority:boolean;onOpen:()=>void}) {
+function MemoryPhotoCard({src,alt,layout,shouldLoad,priority,frameless,onOpen}:{src:string;alt:string;layout:PhotoLayout;shouldLoad:boolean;priority:boolean;frameless:boolean;onOpen:()=>void}) {
   const [loaded,setLoaded]=useState(false);
   const [failed,setFailed]=useState(false);
   const [retryCount,setRetryCount]=useState(0);
@@ -95,11 +97,12 @@ function MemoryPhotoCard({src,alt,layout,shouldLoad,priority,onOpen}:{src:string
       setRequestVersion(version=>version+1);
     },delay);
   };
+  const handleLoad=(image:HTMLImageElement)=>{void decodeImageForDisplay(image).then(()=>{setLoaded(true);setFailed(false)})};
   const onPointerDown=(event:PointerEvent<HTMLButtonElement>)=>{pointer.current={x:event.clientX,y:event.clientY,moved:false};event.currentTarget.setPointerCapture?.(event.pointerId)};
   const onPointerMove=(event:PointerEvent<HTMLButtonElement>)=>{if(Math.hypot(event.clientX-pointer.current.x,event.clientY-pointer.current.y)>9)pointer.current.moved=true};
   const onPointerCancel=()=>{pointer.current.moved=true};
-  return <button className={`memory-photo-card ${loaded?'is-loaded':''} ${failed?'is-failed':''}`} type="button" style={style} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerCancel={onPointerCancel} onClick={event=>{event.stopPropagation();if(pointer.current.moved){event.preventDefault();return}onOpen()}} aria-label={`放大查看${alt}`}>
-    {shouldLoad&&!failed&&<img src={retrySrc} alt={alt} loading={priority?'eager':'lazy'} fetchPriority={priority?'high':'low'} draggable={false} onLoad={()=>{setLoaded(true);setFailed(false)}} onError={handleError}/>} 
+  return <button className={`memory-photo-card ${frameless?'is-poster-card':''} ${loaded?'is-loaded':''} ${failed?'is-failed':''}`} type="button" style={style} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerCancel={onPointerCancel} onClick={event=>{event.stopPropagation();if(pointer.current.moved){event.preventDefault();return}onOpen()}} aria-label={`放大查看${alt}`}>
+    {shouldLoad&&!failed&&<img src={retrySrc} alt={alt} loading={priority?'eager':'lazy'} fetchPriority={priority?'high':'low'} draggable={false} onLoad={event=>handleLoad(event.currentTarget)} onError={handleError}/>} 
     {(!shouldLoad||!loaded||failed)&&<span className="memory-photo-loading" aria-hidden="true"/>}
   </button>;
 }
