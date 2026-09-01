@@ -1,3 +1,7 @@
+@font-face{font-family:"Noto Serif SC";src:url('/fonts/noto-serif-sc-h5-subset.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap}
+.h5{font-family:"Noto Serif SC","Songti SC","STSong",serif}
+.vote-panel h2{width:max-content;max-width:100%;margin-inline:auto;transform:translateX(.1em);text-align:center}
+.success .success-message h2{width:max-content;max-width:100%;margin-inline:auto;transform:translateX(.36em);text-align:center}
 :root{--night:#031c3a;--deep:#062d58;--blue:#0c5f99;--cyan:#77d8ff;--ivory:#f6f1e7;--gold:#d9b86d}
 .memory-rail button.marker{color:#7094a6;cursor:default;scroll-snap-align:none}.memory-rail button.marker span,.memory-rail button.marker small{opacity:.38;transform:none;text-shadow:none}.memory-rail button.marker i{width:5px;height:5px;margin-top:4px;margin-bottom:7px;border-color:#6f9daf;background:#082744;box-shadow:none;transform:none}.memory-rail button.marker em{display:block;max-width:116px;margin:4px auto 0;overflow:hidden;color:#87a7b5;font:normal 8px/1.25 Arial;letter-spacing:.04em;opacity:.52;white-space:nowrap;text-overflow:ellipsis}.memory-rail button.marker:focus,.memory-rail button.marker:active{color:#7094a6}.memory-rail button.marker:focus i,.memory-rail button.marker:active i{background:#082744;box-shadow:none;transform:none}
 .memory-photo-stack.photo-count-6{width:min(92%,360px);height:clamp(190px,31dvh,245px)}.memory-photo-stack.photo-count-6 .memory-photo-card{padding:3px}
