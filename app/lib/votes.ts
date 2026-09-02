@@ -11,6 +11,8 @@ type VoteApiResponse = {
   success: boolean;
   results?: VoteResults;
   vote?: {voter_id: string; status: VoteStatus};
+  voted?: boolean;
+  status?: VoteStatus | null;
   error?: string;
   message?: string;
 };
@@ -24,6 +26,10 @@ function getVoterId() {
   const voterId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : createUuid();
   localStorage.setItem(voterIdStorageKey, voterId);
   return voterId;
+}
+
+function getStoredVoterId() {
+  return localStorage.getItem(voterIdStorageKey)?.trim() || null;
 }
 
 function createUuid() {
@@ -65,6 +71,35 @@ async function callVoteApi(body: Record<string, unknown>): Promise<VoteApiRespon
     throw new Error(payload?.message || payload?.error || 'CloudBase vote request was not successful');
   }
   return payload;
+}
+
+async function queryVoteApi(voterId: string): Promise<VoteApiResponse> {
+  let response: Response;
+  try {
+    response = await fetch(`${voteApiUrl}?voterId=${encodeURIComponent(voterId)}`);
+  } catch (error) {
+    console.error('[votes] CloudBase voter lookup failed', error);
+    throw error;
+  }
+  const payload = await response.json().catch(() => null) as VoteApiResponse | null;
+  if (!response.ok || !payload?.success) {
+    console.error('[votes] CloudBase voter lookup was rejected', response.status, payload);
+    throw new Error(payload?.message || payload?.error || `Voter lookup failed with HTTP ${response.status}`);
+  }
+  return payload;
+}
+
+export async function getMyVote(): Promise<{voted:boolean;status:VoteStatus|null}> {
+  const voterId = getStoredVoterId();
+  if (!voterId) return {voted:false,status:null};
+  const payload = await queryVoteApi(voterId);
+  const status = payload.status;
+  const validStatus = status === 'attend' || status === 'absent' || status === 'maybe';
+  if (payload.voted === true && !validStatus) {
+    console.error('[votes] CloudBase returned an invalid voter status', payload);
+    throw new Error('CloudBase returned an invalid voter status');
+  }
+  return payload.voted === true ? {voted:true,status} : {voted:false,status:null};
 }
 
 export async function submitVote(status: VoteStatus): Promise<VoteResults> {
